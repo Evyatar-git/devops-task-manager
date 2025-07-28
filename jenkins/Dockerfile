@@ -8,12 +8,14 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-venv \
+    python3-full \
     docker.io \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Add jenkins user to docker group
+# Add jenkins user to docker group and fix permissions
 RUN usermod -aG docker jenkins
+RUN chmod 666 /var/run/docker.sock || true
 
 # Switch back to jenkins user
 USER jenkins

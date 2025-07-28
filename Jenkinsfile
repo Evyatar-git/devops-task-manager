@@ -14,12 +14,14 @@ pipeline {
             }
         }
         
-        stage('Install Dependencies') {
+        stage('Setup Python Environment') {
             steps {
-                echo 'Installing Python dependencies...'
+                echo 'Setting up Python virtual environment...'
                 sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
                     python3 -m pip install --upgrade pip
-                    pip3 install -r requirements.txt
+                    pip install -r requirements.txt
                 '''
             }
         }
@@ -28,6 +30,7 @@ pipeline {
             steps {
                 echo 'Running tests...'
                 sh '''
+                    . venv/bin/activate
                     python3 -m pytest tests/ -v
                 '''
             }
@@ -59,6 +62,7 @@ pipeline {
     post {
         always {
             echo 'Pipeline completed!'
+            sh 'rm -rf venv || true'
         }
         success {
             echo 'Pipeline succeeded! 🎉'
@@ -67,7 +71,13 @@ pipeline {
             echo 'Pipeline failed! ❌'
         }
         cleanup {
-            sh 'docker image prune -f'
+            script {
+                try {
+                    sh 'docker image prune -f'
+                } catch (Exception e) {
+                    echo 'Docker cleanup failed, but continuing...'
+                }
+            }
         }
     }
 }
