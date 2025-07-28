@@ -49,32 +49,32 @@ pipeline {
             steps {
                 echo 'Testing Docker image...'
                 sh '''
-                    # Start container and capture container ID
+                    # Start container
                     CONTAINER_ID=$(docker run -d -p 5001:5000 ${DOCKER_IMAGE})
                     echo "Started container: $CONTAINER_ID"
                     
                     # Wait for app to start
-                    echo "Waiting for application to start..."
-                    sleep 15
+                    sleep 10
                     
                     # Show container logs
                     echo "Container logs:"
                     docker logs $CONTAINER_ID
                     
-                    # Test using container's IP instead of localhost
-                    echo "Testing health endpoint..."
-                    CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_ID)
-                    echo "Container IP: $CONTAINER_IP"
+                    # Test simple health endpoint first (no database)
+                    echo "Testing simple health endpoint..."
+                    timeout 5 docker exec $CONTAINER_ID curl -f http://localhost:5000/health || echo "Simple health check failed"
                     
-                    # Try multiple approaches to reach the app
-                    echo "Trying localhost:5001..."
-                    curl -f http://localhost:5001/health || echo "Localhost test failed"
+                    # Test detailed health endpoint (with database)
+                    echo "Testing detailed health endpoint..."
+                    timeout 5 docker exec $CONTAINER_ID curl -f http://localhost:5000/health/detailed || echo "Detailed health check failed"
                     
-                    echo "Trying container IP..."
-                    curl -f http://$CONTAINER_IP:5000/health || echo "Container IP test failed"
+                    # Test if Flask is responding at all
+                    echo "Testing Flask root endpoint..."
+                    timeout 5 docker exec $CONTAINER_ID curl -I http://localhost:5000/ || echo "Root endpoint failed"
                     
-                    echo "Trying docker exec approach..."
-                    docker exec $CONTAINER_ID curl -f http://localhost:5000/health || echo "Docker exec test failed"
+                    # Show final container status
+                    echo "Container status:"
+                    docker ps | grep $CONTAINER_ID || echo "Container not running"
                     
                     # Cleanup
                     echo "Cleaning up container..."

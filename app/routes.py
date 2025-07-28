@@ -2,18 +2,15 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app import db
 from app.models import Task
 
-# Blueprint = a way to organize related routes
 main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    """Home page - shows all tasks"""
     tasks = Task.query.all()
     return render_template('index.html', tasks=tasks)
 
 @main.route('/add', methods=['GET', 'POST'])
 def add_task():
-    """Add a new task"""
     if request.method == 'POST':
         title = request.form['title']
         description = request.form.get('description', '')
@@ -31,7 +28,6 @@ def add_task():
 
 @main.route('/complete/<int:task_id>')
 def complete_task(task_id):
-    """Mark a task as completed"""
     task = Task.query.get_or_404(task_id)
     task.completed = True
     db.session.commit()
@@ -40,15 +36,32 @@ def complete_task(task_id):
 
 @main.route('/delete/<int:task_id>')
 def delete_task(task_id):
-    """Delete a task"""
     task = Task.query.get_or_404(task_id)
     db.session.delete(task)
     db.session.commit()
     flash('Task deleted!', 'success')
     return redirect(url_for('main.index'))
 
-# API endpoint for health checks (important for monitoring later)
 @main.route('/health')
 def health_check():
-    """Simple health check endpoint"""
-    return jsonify({'status': 'healthy', 'message': 'Task Manager is running'})
+    """Simple health check that doesn't require database"""
+    return {'status': 'healthy', 'message': 'Task Manager is running'}
+
+@main.route('/health/detailed')
+def detailed_health_check():
+    """Detailed health check that tests database connectivity"""
+    try:
+        # Test database connection
+        task_count = Task.query.count()
+        return jsonify({
+            'status': 'healthy', 
+            'message': 'Task Manager is running',
+            'database': 'connected',
+            'task_count': task_count
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'message': str(e),
+            'database': 'disconnected'
+        }), 500
