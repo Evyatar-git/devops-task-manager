@@ -6,3 +6,12 @@ venv/
 .pytest_cache/
 .coverage
 instance/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfplan
+*.tfplan.*
