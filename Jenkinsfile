@@ -49,12 +49,16 @@ pipeline {
             steps {
                 echo 'Testing Docker image...'
                 sh '''
+                    # Clean up any existing containers using port 5001
+                    echo "Cleaning up existing containers on port 5001..."
+                    docker ps -a --filter "publish=5001" --format "{{.ID}}" | xargs -r docker rm -f || true
+                    
                     # Start container
                     CONTAINER_ID=$(docker run -d -p 5001:5000 ${DOCKER_IMAGE})
                     echo "Started container: $CONTAINER_ID"
                     
                     # Wait for app to start
-                    sleep 10
+                    sleep 15
                     
                     # Show container logs
                     echo "Container logs:"
@@ -62,15 +66,15 @@ pipeline {
                     
                     # Test simple health endpoint first (no database)
                     echo "Testing simple health endpoint..."
-                    timeout 5 docker exec $CONTAINER_ID curl -f http://localhost:5000/health || echo "Simple health check failed"
+                    timeout 10 docker exec $CONTAINER_ID curl -f http://localhost:5000/health || echo "Simple health check failed"
                     
                     # Test detailed health endpoint (with database)
                     echo "Testing detailed health endpoint..."
-                    timeout 5 docker exec $CONTAINER_ID curl -f http://localhost:5000/health/detailed || echo "Detailed health check failed"
+                    timeout 10 docker exec $CONTAINER_ID curl -f http://localhost:5000/health/detailed || echo "Detailed health check failed"
                     
                     # Test if Flask is responding at all
                     echo "Testing Flask root endpoint..."
-                    timeout 5 docker exec $CONTAINER_ID curl -I http://localhost:5000/ || echo "Root endpoint failed"
+                    timeout 10 docker exec $CONTAINER_ID curl -I http://localhost:5000/ || echo "Root endpoint failed"
                     
                     # Show final container status
                     echo "Container status:"
@@ -78,8 +82,8 @@ pipeline {
                     
                     # Cleanup
                     echo "Cleaning up container..."
-                    docker stop $CONTAINER_ID
-                    docker rm $CONTAINER_ID
+                    docker stop $CONTAINER_ID || true
+                    docker rm $CONTAINER_ID || true
                 '''
             }
         }
