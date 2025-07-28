@@ -1,12 +1,13 @@
 # DevOps Task Manager
 
-A cloud-native task management application demonstrating modern DevOps practices including containerization, infrastructure as code, and automated deployment.
+A cloud-native task management application demonstrating modern DevOps practices including containerization, infrastructure as code, and automated CI/CD deployment.
 
 ## Architecture
 
 - **Application**: Python Flask with SQLite database
 - **Containerization**: Docker with Docker Compose
 - **Infrastructure**: AWS (VPC, ALB, Auto Scaling) managed with Terraform
+- **CI/CD**: Jenkins containerized pipeline with automated testing and deployment
 - **Deployment**: Automated via user data scripts and container orchestration
 
 ## Features
@@ -17,6 +18,7 @@ A cloud-native task management application demonstrating modern DevOps practices
 - Health monitoring endpoints
 - Auto-scaling AWS infrastructure
 - Bootstrap responsive UI
+- Automated CI/CD pipeline with testing and building
 
 ## Technology Stack
 
@@ -25,6 +27,8 @@ A cloud-native task management application demonstrating modern DevOps practices
 - **Database**: SQLite (development), scalable to RDS
 - **Infrastructure**: Terraform, AWS (VPC, ALB, ASG, EC2)
 - **Containerization**: Docker, Docker Compose
+- **CI/CD**: Jenkins (containerized with Docker)
+- **Testing**: pytest with automated test execution
 
 ## Quick Start
 
@@ -44,6 +48,46 @@ docker-compose up
 ```
 Visit http://localhost:5000
 
+## CI/CD Pipeline (Jenkins)
+
+### Prerequisites
+- Docker Desktop running
+- Git repository with code
+
+### Setup Jenkins Environment
+```bash
+cd jenkins
+docker-compose up -d
+```
+
+### Access Jenkins
+- **Jenkins UI**: http://localhost:8080
+- **Initial setup**: Follow setup wizard and install suggested plugins
+- **Credentials**: Create admin user during setup
+
+### Configure CI/CD Pipeline
+1. Create new Pipeline job in Jenkins
+2. Configure to use GitHub repository
+3. Set branch to monitor (e.g., `feature/ci-cd-pipeline` or `main`)
+4. Pipeline will automatically:
+   - Run tests on code changes
+   - Build Docker images
+   - Perform health checks
+   - Clean up resources
+
+### Stop Jenkins
+```bash
+cd jenkins
+docker-compose down
+```
+
+### Pipeline Features
+- Automated testing with pytest
+- Docker image building and verification
+- Multi-stage health checking
+- Automatic cleanup and resource management
+- Build status notifications
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
@@ -54,6 +98,7 @@ Visit http://localhost:5000
 | GET    | `/complete/<id>` | Mark task as complete |
 | GET    | `/delete/<id>` | Delete task |
 | GET    | `/health` | Health check endpoint |
+| GET    | `/health/detailed` | Detailed health check with database |
 
 ## AWS Infrastructure
 
@@ -132,6 +177,10 @@ devops-task-manager/
 │       ├── base.html
 │       ├── index.html
 │       └── add_task.html
+├── jenkins/                # CI/CD Infrastructure
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   └── README.md
 ├── terraform/              # Infrastructure as Code
 │   ├── main.tf
 │   ├── variables.tf
@@ -149,6 +198,7 @@ devops-task-manager/
 ├── docker-compose.yml
 ├── .dockerignore           # Docker build exclusions
 ├── .gitignore              # Git exclusions
+├── Jenkinsfile             # CI/CD pipeline definition
 └── README.md
 ```
 
@@ -159,6 +209,7 @@ devops-task-manager/
 - Environment-based configuration management
 - No hardcoded credentials in source code
 - SSH access restricted (production deployment should limit to specific IPs)
+- Containerized CI/CD environment for isolation
 
 ## Cost Optimization
 
@@ -170,9 +221,11 @@ This project uses AWS free tier eligible resources:
 ## Monitoring
 
 - Application health checks at `/health` endpoint
+- Detailed health checks with database connectivity testing
 - Load balancer health monitoring with automatic failover
 - Auto Scaling based on instance health
 - CloudWatch integration for metrics and logging
+- CI/CD pipeline status monitoring
 
 ## Contributing
 
