@@ -32,3 +32,14 @@ Run tests with: `python -m pytest tests/`
 - Containerize with Docker
 - Set up CI/CD pipeline
 - Deploy to AWS
+
+## Docker Development
+
+1. Make sure Docker Desktop is running
+2. Build the container: `docker-compose build`
+3. Run the application: `docker-compose up`
+4. Visit http://localhost:5000
+5. Stop with Ctrl+C
+
+## Health Check
+Visit http://localhost:5000/health to verify the application is running.
