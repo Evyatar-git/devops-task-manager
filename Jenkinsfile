@@ -48,14 +48,39 @@ pipeline {
         stage('Test Docker Image') {
             steps {
                 echo 'Testing Docker image...'
-                script {
-                    def app = docker.image("${DOCKER_IMAGE}")
-                    app.withRun('-p 5001:5000') { container ->
-                        sh 'sleep 20'  // Increased wait time
-                        sh 'curl -v http://localhost:5001/health || echo "Health check failed but continuing..."'
-                        sh 'docker logs ${container.id} || true'  // Show container logs
-                    }
-                }
+                sh '''
+                    # Start container and capture container ID
+                    CONTAINER_ID=$(docker run -d -p 5001:5000 ${DOCKER_IMAGE})
+                    echo "Started container: $CONTAINER_ID"
+                    
+                    # Wait for app to start
+                    echo "Waiting for application to start..."
+                    sleep 15
+                    
+                    # Show container logs
+                    echo "Container logs:"
+                    docker logs $CONTAINER_ID
+                    
+                    # Test using container's IP instead of localhost
+                    echo "Testing health endpoint..."
+                    CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_ID)
+                    echo "Container IP: $CONTAINER_IP"
+                    
+                    # Try multiple approaches to reach the app
+                    echo "Trying localhost:5001..."
+                    curl -f http://localhost:5001/health || echo "Localhost test failed"
+                    
+                    echo "Trying container IP..."
+                    curl -f http://$CONTAINER_IP:5000/health || echo "Container IP test failed"
+                    
+                    echo "Trying docker exec approach..."
+                    docker exec $CONTAINER_ID curl -f http://localhost:5000/health || echo "Docker exec test failed"
+                    
+                    # Cleanup
+                    echo "Cleaning up container..."
+                    docker stop $CONTAINER_ID
+                    docker rm $CONTAINER_ID
+                '''
             }
         }
     }
