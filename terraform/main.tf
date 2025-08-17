@@ -1,4 +1,3 @@
-# Configure AWS Provider
 terraform {
   required_providers {
     aws = {
@@ -9,17 +8,14 @@ terraform {
   required_version = ">= 1.0"
 }
 
-# Configure the AWS Provider
 provider "aws" {
   region = var.aws_region
 }
 
-# Data source for availability zones
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# Create VPC
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -31,7 +27,6 @@ resource "aws_vpc" "main" {
   }
 }
 
-# Create Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
@@ -41,7 +36,6 @@ resource "aws_internet_gateway" "main" {
   }
 }
 
-# Create public subnets
 resource "aws_subnet" "public" {
   count             = 2
   vpc_id            = aws_vpc.main.id
@@ -56,7 +50,6 @@ resource "aws_subnet" "public" {
   }
 }
 
-# Create route table for public subnets
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -71,7 +64,6 @@ resource "aws_route_table" "public" {
   }
 }
 
-# Associate route table with public subnets
 resource "aws_route_table_association" "public" {
   count          = length(aws_subnet.public)
   subnet_id      = aws_subnet.public[count.index].id

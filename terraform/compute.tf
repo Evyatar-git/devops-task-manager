@@ -1,4 +1,3 @@
-# Get the latest Amazon Linux 2 AMI
 data "aws_ami" "amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
@@ -9,7 +8,6 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
-# Launch template for EC2 instances
 resource "aws_launch_template" "web" {
   name_prefix   = "${var.project_name}-web-"
   image_id      = data.aws_ami.amazon_linux.id
@@ -31,7 +29,6 @@ resource "aws_launch_template" "web" {
   }
 }
 
-# Auto Scaling Group (starts with 1 instance, can scale to 2)
 resource "aws_autoscaling_group" "web" {
   name                = "${var.project_name}-web-asg"
   vpc_zone_identifier = aws_subnet.public[*].id
@@ -61,7 +58,6 @@ resource "aws_autoscaling_group" "web" {
   }
 }
 
-# Application Load Balancer
 resource "aws_lb" "main" {
   name               = "${var.project_name}-alb"
   internal           = false
@@ -77,7 +73,6 @@ resource "aws_lb" "main" {
   }
 }
 
-# Target group for load balancer
 resource "aws_lb_target_group" "web" {
   name     = "${var.project_name}-web-tg"
   port     = 5000
@@ -102,7 +97,6 @@ resource "aws_lb_target_group" "web" {
   }
 }
 
-# Load balancer listener
 resource "aws_lb_listener" "web" {
   load_balancer_arn = aws_lb.main.arn
   port              = "80"

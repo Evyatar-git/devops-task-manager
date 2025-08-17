@@ -12,7 +12,7 @@ instance/
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
-terraform.tfvars
+variables.tf.backup
 *.tfplan
 *.tfplan.*
 
