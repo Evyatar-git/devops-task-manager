@@ -1,3 +1,6 @@
+###IMPORTANT NOTE###
+This project is a constant WIP meant to help me practice and learn DevOps practices and tools, it was made using Claude AI.
+
 # DevOps Task Manager
 
 A cloud-native task management application demonstrating modern DevOps practices including containerization, infrastructure as code, and automated CI/CD deployment.
