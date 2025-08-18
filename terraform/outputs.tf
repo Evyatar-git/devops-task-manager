@@ -1,14 +1,19 @@
 output "load_balancer_dns" {
   description = "DNS name of the load balancer"
-  value       = aws_lb.main.dns_name
+  value       = module.compute.load_balancer_dns
 }
 
 output "load_balancer_url" {
   description = "URL to access the application"
-  value       = "http://${aws_lb.main.dns_name}"
+  value       = "http://${module.compute.load_balancer_dns}"
 }
 
 output "vpc_id" {
   description = "ID of the VPC"
-  value       = aws_vpc.main.id
+  value       = module.networking.vpc_id
+}
+
+output "public_subnet_ids" {
+  description = "IDs of the public subnets"
+  value       = module.networking.public_subnet_ids
 }

@@ -1,17 +1,18 @@
-###IMPORTANT NOTE###
+### IMPORTANT NOTE ###
 This project is a constant WIP meant to help me practice and learn DevOps practices and tools, it was made using Claude AI.
 
 # DevOps Task Manager
 
-A cloud-native task management application demonstrating modern DevOps practices including containerization, infrastructure as code, and automated CI/CD deployment.
+A cloud-native task management application demonstrating modern DevOps practices including containerization, infrastructure as code, modular architecture, and automated CI/CD deployment.
 
 ## Architecture
 
 - **Application**: Python Flask with SQLite database
 - **Containerization**: Docker with Docker Compose
-- **Infrastructure**: AWS (VPC, ALB, Auto Scaling) managed with Terraform
+- **Infrastructure**: AWS (VPC, ALB, Auto Scaling) managed with modular Terraform
 - **CI/CD**: Jenkins containerized pipeline with automated testing and deployment
 - **Deployment**: Automated via user data scripts and container orchestration
+- **Architecture Pattern**: Modular infrastructure with separation of concerns
 
 ## Features
 
@@ -22,13 +23,14 @@ A cloud-native task management application demonstrating modern DevOps practices
 - Auto-scaling AWS infrastructure
 - Bootstrap responsive UI
 - Automated CI/CD pipeline with testing and building
+- Modular infrastructure design for reusability and maintainability
 
 ## Technology Stack
 
 - **Backend**: Python 3.11, Flask, SQLAlchemy
 - **Frontend**: Bootstrap 5, Jinja2 templates
 - **Database**: SQLite (development), scalable to RDS
-- **Infrastructure**: Terraform, AWS (VPC, ALB, ASG, EC2)
+- **Infrastructure**: Terraform with modular architecture, AWS (VPC, ALB, ASG, EC2)
 - **Containerization**: Docker, Docker Compose
 - **CI/CD**: Jenkins (containerized with Docker)
 - **Testing**: pytest with automated test execution
@@ -103,7 +105,20 @@ docker-compose down
 | GET    | `/health` | Health check endpoint |
 | GET    | `/health/detailed` | Detailed health check with database |
 
-## AWS Infrastructure
+## AWS Infrastructure (Modular Architecture)
+
+### Infrastructure Modules
+The infrastructure is organized into reusable, maintainable modules:
+
+- **Networking Module**: VPC, subnets, internet gateway, routing tables
+- **Security Module**: Security groups with least-privilege access rules
+- **Compute Module**: Auto Scaling Groups, Load Balancer, launch templates
+
+### Module Benefits
+- **Reusability**: Deploy same infrastructure across multiple environments
+- **Maintainability**: Update individual components without affecting others
+- **Team Collaboration**: Different teams can own different modules
+- **Testing**: Each module can be tested and validated independently
 
 ### Infrastructure Components
 - Multi-AZ VPC with public subnets
@@ -132,7 +147,7 @@ Create a key pair named `devops-task-manager-key` in the AWS Console.
 **AWS CLI Configuration:**
 ```bash
 aws configure
-aws sts get-caller-identity  # Verify setup
+aws sts get-caller-identity  
 ```
 
 ### Deploy to AWS
@@ -165,8 +180,8 @@ python -m pytest tests/
 ### Infrastructure Changes
 ```bash
 cd terraform
-terraform plan    # Review changes
-terraform apply   # Apply changes
+terraform plan    
+terraform apply   
 ```
 
 ### Project Structure
@@ -184,14 +199,25 @@ devops-task-manager/
 │   ├── Dockerfile
 │   ├── docker-compose.yml
 │   └── README.md
-├── terraform/              # Infrastructure as Code
-│   ├── main.tf
-│   ├── variables.tf
-│   ├── security.tf
-│   ├── compute.tf
-│   ├── outputs.tf
-│   ├── user_data.sh
-│   └── terraform.tfvars
+├── terraform/              # Infrastructure as Code (Modular)
+│   ├── main.tf            # Module orchestration
+│   ├── variables.tf       # Root variables
+│   ├── outputs.tf         # Root outputs
+│   ├── terraform.tfvars   # Configuration values
+│   ├── user_data.sh       # EC2 initialization script
+│   └── modules/           # Reusable infrastructure modules
+│       ├── networking/    # VPC, subnets, routing
+│       │   ├── main.tf
+│       │   ├── variables.tf
+│       │   └── outputs.tf
+│       ├── security/      # Security groups
+│       │   ├── main.tf
+│       │   ├── variables.tf
+│       │   └── outputs.tf
+│       └── compute/       # ASG, ALB, launch templates
+│           ├── main.tf
+│           ├── variables.tf
+│           └── outputs.tf
 ├── tests/                  # Application tests
 │   └── test_app.py
 ├── app.py                  # Application entry point
@@ -213,6 +239,7 @@ devops-task-manager/
 - No hardcoded credentials in source code
 - SSH access restricted (production deployment should limit to specific IPs)
 - Containerized CI/CD environment for isolation
+- Modular security design with dedicated security module
 
 ## Cost Optimization
 
@@ -229,6 +256,28 @@ This project uses AWS free tier eligible resources:
 - Auto Scaling based on instance health
 - CloudWatch integration for metrics and logging
 - CI/CD pipeline status monitoring
+
+## DevOps Best Practices Demonstrated
+
+### Infrastructure as Code
+- **Terraform modules** for reusable infrastructure components
+- **Version control** for infrastructure changes
+- **Environment separation** through variable configuration
+
+### CI/CD Pipeline
+- **Automated testing** on every code commit
+- **Container-based builds** for consistency
+- **Health check validation** before deployment
+
+### Containerization
+- **Docker** for application packaging
+- **Docker Compose** for local development
+- **Consistent environments** across development and production
+
+### Cloud Architecture
+- **Auto-scaling** for high availability
+- **Load balancing** for traffic distribution  
+- **Multi-AZ deployment** for resilience
 
 ## Contributing
 

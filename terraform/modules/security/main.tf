@@ -1,6 +1,15 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
 resource "aws_security_group" "web" {
   name_prefix = "${var.project_name}-web-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = var.vpc_id
   description = "Security group for web servers"
 
   ingress {
@@ -14,7 +23,7 @@ resource "aws_security_group" "web" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.allowed_cidr_blocks
   }
 
   egress {
@@ -32,14 +41,14 @@ resource "aws_security_group" "web" {
 
 resource "aws_security_group" "alb" {
   name_prefix = "${var.project_name}-alb-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = var.vpc_id
   description = "Security group for Application Load Balancer"
 
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.allowed_cidr_blocks
   }
 
   egress {

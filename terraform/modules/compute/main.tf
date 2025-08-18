@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
 data "aws_ami" "amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
@@ -14,9 +23,9 @@ resource "aws_launch_template" "web" {
   instance_type = var.instance_type
   key_name      = var.key_name
 
-  vpc_security_group_ids = [aws_security_group.web.id]
+  vpc_security_group_ids = var.security_group_ids
 
-  user_data = base64encode(templatefile("${path.module}/user_data.sh", {
+  user_data = base64encode(templatefile("${path.module}/../../user_data.sh", {
     app_port = 5000
   }))
 
@@ -27,18 +36,22 @@ resource "aws_launch_template" "web" {
       Environment = var.environment
     }
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_autoscaling_group" "web" {
   name                = "${var.project_name}-web-asg"
-  vpc_zone_identifier = aws_subnet.public[*].id
+  vpc_zone_identifier = var.subnet_ids
   target_group_arns   = [aws_lb_target_group.web.arn]
   health_check_type   = "ELB"
   health_check_grace_period = 300
 
-  min_size         = 1
-  max_size         = 2
-  desired_capacity = 1
+  min_size         = var.min_size
+  max_size         = var.max_size
+  desired_capacity = var.desired_capacity
 
   launch_template {
     id      = aws_launch_template.web.id
@@ -56,14 +69,18 @@ resource "aws_autoscaling_group" "web" {
     value               = var.environment
     propagate_at_launch = true
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_lb" "main" {
   name               = "${var.project_name}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = aws_subnet.public[*].id
+  security_groups    = [var.alb_security_group_id]
+  subnets            = var.subnet_ids
 
   enable_deletion_protection = false
 
@@ -77,7 +94,7 @@ resource "aws_lb_target_group" "web" {
   name     = "${var.project_name}-web-tg"
   port     = 5000
   protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
+  vpc_id   = var.vpc_id
 
   health_check {
     enabled             = true
